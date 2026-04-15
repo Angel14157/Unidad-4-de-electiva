@@ -1,0 +1,350 @@
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Correos: ¿Estafa o Seguro?</title>
+    <!-- Tailwind CSS para el diseño -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome para los iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Animaciones personalizadas */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(2px);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 h-screen flex flex-col overflow-hidden">
+
+    <!-- Barra de Navegación (Estilo Gmail) -->
+    <header class="bg-white shadow-sm h-16 flex items-center justify-between px-4 lg:px-6 z-10 shrink-0">
+        <div class="flex items-center gap-4">
+            <button class="text-gray-500 hover:text-gray-700 md:hidden">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+            <div class="flex items-center gap-2 text-blue-600 font-bold text-xl">
+                <i class="fas fa-envelope-open-text"></i>
+                <span class="hidden sm:inline">SecurMail</span>
+            </div>
+        </div>
+        <div class="flex-1 max-w-2xl px-4 hidden md:block">
+            <div class="bg-gray-100 rounded-full flex items-center px-4 py-2 focus-within:bg-white focus-within:shadow-md border border-transparent focus-within:border-gray-200 transition-all">
+                <i class="fas fa-search text-gray-400"></i>
+                <input type="text" placeholder="Buscar en el correo" class="bg-transparent border-none outline-none w-full ml-3 text-gray-700 placeholder-gray-500" disabled>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold">
+                U
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenedor Principal -->
+    <main class="flex flex-1 overflow-hidden">
+        <!-- Barra Lateral -->
+        <aside class="w-64 bg-white border-r border-gray-200 p-4 hidden md:flex flex-col shrink-0">
+            <button class="bg-blue-600 hover:bg-blue-700 text-white rounded-2xl py-4 px-6 flex items-center gap-3 font-medium transition-colors shadow-sm mb-6">
+                <i class="fas fa-pencil-alt"></i>
+                Redactar
+            </button>
+            <nav class="flex-1">
+                <ul class="space-y-1">
+                    <li>
+                        <a href="#" class="flex items-center gap-4 px-4 py-2 bg-blue-50 text-blue-700 rounded-r-full font-medium">
+                            <i class="fas fa-inbox w-5"></i>
+                            Recibidos
+                            <span class="ml-auto bg-blue-600 text-white text-xs py-0.5 px-2 rounded-full" id="email-counter">1/5</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center gap-4 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-r-full transition-colors">
+                            <i class="fas fa-paper-plane w-5"></i>
+                            Enviados
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center gap-4 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-r-full transition-colors">
+                            <i class="fas fa-exclamation-triangle w-5"></i>
+                            Spam
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Área de Lectura de Correo -->
+        <section class="flex-1 flex flex-col bg-white md:bg-gray-50 lg:p-6 overflow-y-auto">
+            <div class="bg-white flex-1 md:rounded-2xl md:shadow-sm md:border border-gray-200 flex flex-col max-w-4xl mx-auto w-full">
+                
+                <!-- Progreso -->
+                <div class="px-6 py-3 border-b border-gray-100 flex justify-between items-center bg-gray-50 md:rounded-t-2xl">
+                    <span class="text-sm font-medium text-gray-500 uppercase tracking-wider">Análisis de Seguridad</span>
+                    <span class="text-sm font-bold text-indigo-600 bg-indigo-100 px-3 py-1 rounded-full" id="progress-text">Correo 1 de 5</span>
+                </div>
+
+                <!-- Cabecera del Correo -->
+                <div class="p-6 border-b border-gray-100">
+                    <h2 class="text-2xl font-normal text-gray-800 mb-4" id="email-subject">Cargando asunto...</h2>
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center text-white text-xl shadow-inner shrink-0" id="sender-initial">
+                            ?
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-gray-800 text-lg" id="email-sender-name">Cargando remitente...</span>
+                            </div>
+                            <div class="text-sm text-gray-500" id="email-sender-address">cargando@correo.com</div>
+                        </div>
+                        <div class="ml-auto text-sm text-gray-500 hidden sm:block">
+                            Hoy, 10:30 AM
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cuerpo del Correo -->
+                <div class="p-6 md:p-10 flex-1 overflow-y-auto">
+                    <div class="prose max-w-none text-gray-700 text-lg leading-relaxed whitespace-pre-wrap" id="email-body">
+                        Cargando el contenido del correo...
+                    </div>
+                </div>
+
+                <!-- Área de Botones de Decisión -->
+                <div class="p-6 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row gap-4 justify-center items-center md:rounded-b-2xl">
+                    <p class="w-full text-center sm:w-auto sm:text-left text-gray-600 font-medium mb-2 sm:mb-0 sm:mr-4">¿Qué decisión tomarás?</p>
+                    
+                    <button onclick="makeDecision(true)" class="w-full sm:w-auto flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-lg font-bold text-lg transition-transform transform hover:scale-105 shadow-md">
+                        <i class="fas fa-shield-alt"></i>
+                        ¡Es una estafa!
+                    </button>
+                    
+                    <button onclick="makeDecision(false)" class="w-full sm:w-auto flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg font-bold text-lg transition-transform transform hover:scale-105 shadow-md">
+                        <i class="fas fa-check-circle"></i>
+                        Es seguro, aceptar
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal de Retroalimentación -->
+    <div id="feedback-modal" class="fixed inset-0 modal-overlay flex items-center justify-center z-50 hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden fade-in">
+            <div class="p-6 text-center" id="modal-content">
+                <div id="modal-icon" class="text-6xl mb-4 text-gray-400">
+                    <i class="fas fa-info-circle"></i>
+                </div>
+                <h3 id="modal-title" class="text-2xl font-bold mb-2 text-gray-800">Resultado</h3>
+                <p id="modal-message" class="text-gray-600 text-lg mb-8">Mensaje de retroalimentación aquí.</p>
+                
+                <button onclick="nextEmail()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-colors shadow-sm text-lg">
+                    Siguiente Correo <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Fin de Juego -->
+    <div id="end-modal" class="fixed inset-0 modal-overlay flex items-center justify-center z-50 hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden fade-in">
+            <div class="p-8 text-center bg-gradient-to-b from-indigo-50 to-white">
+                <div class="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6 shadow-inner">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <h3 class="text-3xl font-bold mb-2 text-gray-800">¡Simulación completada!</h3>
+                <p class="text-gray-600 text-lg mb-8">Has evaluado todos los correos. ¿Qué deseas hacer ahora?</p>
+                
+                <div class="flex flex-col gap-3">
+                    <button onclick="resetGame()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl transition-colors shadow-sm text-lg flex items-center justify-center gap-2">
+                        <i class="fas fa-redo"></i> Repetir Simulación
+                    </button>
+                    <button onclick="finishGame()" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-4 rounded-xl transition-colors shadow-sm text-lg flex items-center justify-center gap-2">
+                        <i class="fas fa-door-open"></i> Finalizar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lógica del Simulador -->
+    <script>
+        // Base de datos de correos (Niveles)
+        const emails = [
+            {
+                senderName: "Lotería Internacional",
+                senderEmail: "<premios@loteria-fantasma.com>",
+                subject: "¡Ganaste $1,000,000!",
+                body: "Estimado usuario,\n\nHaz clic aquí y danos tu cuenta bancaria para depositarte el gran premio. ¡Esta es tu oportunidad de ser millonario!\n\nSaludos cordiales.",
+                isScam: true,
+                feedbackScam: "¡Bien hecho! Te salvaste de un virus informático.",
+                feedbackSafe: "¡Error! Descargaste un virus y bloquearon tu computadora."
+            },
+            {
+                senderName: "Recursos Humanos Google",
+                senderEmail: "<hr@google.com>",
+                subject: "Oferta de Empleo",
+                body: "Hola,\n\nRevisamos tu perfil y queremos ofrecerte el puesto remoto. Adjuntamos el PDF oficial con todos los detalles corporativos y beneficios.\n\nAtentamente,\nEquipo de RRHH",
+                isScam: false,
+                feedbackScam: "¡Lástima! Perdiste la oportunidad de trabajar internacionalmente.",
+                feedbackSafe: "¡Felicidades! Conseguiste trabajo en una empresa prestigiosa."
+            },
+            {
+                senderName: "Soporte Bancariio",
+                senderEmail: "<alertas@banco-seguro-falso.com>",
+                subject: "URGENTE: Cuenta Bloqueada",
+                body: "Estimado cliente,\n\nDetectamos actividad inusual. Inicia sesión en este enlace (www.banco-seguro-falso.com) en los próximos 5 minutos o perderás tu dinero de forma permanente.\n\nEvite molestias.",
+                isScam: true,
+                feedbackScam: "¡Felicidades! Detectaste la trampa y te salvaste de una ola de robos bancarios.",
+                feedbackSafe: "¡Oh no! Pusiste tus datos en una página falsa y te robaron la plata del banco."
+            },
+            {
+                senderName: "Profesorado",
+                senderEmail: "<profesor@universidad.edu>",
+                subject: "Notas del Proyecto",
+                body: "Estimado estudiante,\n\nAdjunto las correcciones de su último proyecto en la plataforma educativa oficial. Por favor revise los comentarios para la próxima sesión.\n\nSaludos cordiales,\nProfesor Titular",
+                isScam: false,
+                feedbackScam: "¡Ups! Ignoraste a tu profesora y perdiste puntos valiosos.",
+                feedbackSafe: "¡Excelente! Descargaste tus notas de forma segura."
+            },
+            {
+                senderName: "Admin de Sistemas",
+                senderEmail: "<admin@sistemas-it.net>",
+                subject: "Actualización de Contraseña",
+                body: "Alerta del Sistema,\n\nTu contraseña caduca hoy. Responde a este correo con tu contraseña actual y la nueva para actualizarla en nuestra base de datos de manera inmediata.\n\nSoporte IT",
+                isScam: true,
+                feedbackScam: "¡Eres un experto! Nunca se deben enviar contraseñas por correo.",
+                feedbackSafe: "¡Hackeado! El atacante ahora tiene acceso a todas tus cuentas personales."
+            }
+        ];
+
+        // Estado del juego
+        let currentIndex = 0;
+
+        // Elementos del DOM
+        const elSubject = document.getElementById('email-subject');
+        const elSenderName = document.getElementById('email-sender-name');
+        const elSenderEmail = document.getElementById('email-sender-address');
+        const elBody = document.getElementById('email-body');
+        const elInitial = document.getElementById('sender-initial');
+        const elProgress = document.getElementById('progress-text');
+        const elCounter = document.getElementById('email-counter');
+        
+        const feedbackModal = document.getElementById('feedback-modal');
+        const endModal = document.getElementById('end-modal');
+        const modalIcon = document.getElementById('modal-icon');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMessage = document.getElementById('modal-message');
+
+        // Inicializar el primer correo
+        window.onload = () => {
+            loadEmail(currentIndex);
+        };
+
+        function loadEmail(index) {
+            const email = emails[index];
+            
+            // Actualizar textos
+            elSubject.textContent = email.subject;
+            elSenderName.textContent = email.senderName;
+            elSenderEmail.textContent = email.senderEmail;
+            elBody.textContent = email.body;
+            
+            // Actualizar inicial del remitente
+            elInitial.textContent = email.senderName.charAt(0).toUpperCase();
+            
+            // Cambiar color de la inicial aleatoriamente basado en el nombre para darle realismo
+            const colors = ['bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500', 'bg-pink-500'];
+            const colorIndex = email.senderName.length % colors.length;
+            elInitial.className = `w-12 h-12 rounded-full flex items-center justify-center text-white text-xl shadow-inner shrink-0 ${colors[colorIndex]}`;
+
+            // Actualizar contadores
+            elProgress.textContent = `Correo ${index + 1} de ${emails.length}`;
+            elCounter.textContent = `${index + 1}/${emails.length}`;
+        }
+
+        function makeDecision(isScamChoice) {
+            const email = emails[currentIndex];
+            let isCorrect = false;
+            let feedbackText = "";
+
+            // Evaluar lógica
+            if (isScamChoice) {
+                // Eligió "Estafa"
+                feedbackText = email.feedbackScam;
+                isCorrect = email.isScam; // Correcto si realmente era estafa
+            } else {
+                // Eligió "Seguro"
+                feedbackText = email.feedbackSafe;
+                isCorrect = !email.isScam; // Correcto si realmente era seguro (no estafa)
+            }
+
+            showFeedback(isCorrect, feedbackText);
+        }
+
+        function showFeedback(isCorrect, message) {
+            modalMessage.textContent = message;
+            
+            if (isCorrect) {
+                modalIcon.innerHTML = '<i class="fas fa-check-circle"></i>';
+                modalIcon.className = 'text-6xl mb-4 text-green-500';
+                modalTitle.textContent = '¡Decisión Correcta!';
+                modalTitle.className = 'text-2xl font-bold mb-2 text-green-600';
+            } else {
+                modalIcon.innerHTML = '<i class="fas fa-times-circle"></i>';
+                modalIcon.className = 'text-6xl mb-4 text-red-500';
+                modalTitle.textContent = '¡Decisión Incorrecta!';
+                modalTitle.className = 'text-2xl font-bold mb-2 text-red-600';
+            }
+
+            feedbackModal.classList.remove('hidden');
+        }
+
+        function nextEmail() {
+            feedbackModal.classList.add('hidden');
+            currentIndex++;
+
+            if (currentIndex < emails.length) {
+                loadEmail(currentIndex);
+            } else {
+                showEndScreen();
+            }
+        }
+
+        function showEndScreen() {
+            endModal.classList.remove('hidden');
+        }
+
+        function resetGame() {
+            currentIndex = 0;
+            endModal.classList.add('hidden');
+            loadEmail(currentIndex);
+        }
+
+        function finishGame() {
+            // Reemplaza el contenido por una pantalla de despedida
+            document.body.innerHTML = `
+                <div class="h-screen w-full bg-gray-100 flex items-center justify-center p-4">
+                    <div class="text-center">
+                        <i class="fas fa-shield-check text-green-500 text-6xl mb-4"></i>
+                        <h1 class="text-3xl font-bold text-gray-800 mb-2">¡Gracias por participar!</h1>
+                        <p class="text-gray-600 text-lg">Recuerda siempre verificar los remitentes y enlaces antes de hacer clic.</p>
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
+
+```
+
